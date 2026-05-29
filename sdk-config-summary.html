@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sentry SDK Config — Native HTTP Traces in React Native</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      line-height: 1.7;
+      padding: 48px 24px 80px;
+    }
+
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid #21262d;
+      padding-bottom: 32px;
+      margin-bottom: 48px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .logo svg { flex-shrink: 0; }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      background: #1f3a5f;
+      color: #58a6ff;
+      border: 1px solid #1f6feb;
+      border-radius: 20px;
+      padding: 2px 10px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #f0f6fc;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: #8b949e;
+      max-width: 640px;
+    }
+
+    /* ── Section ── */
+    .section {
+      margin-bottom: 48px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .layer-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .layer-icon.js       { background: #2d2208; border: 1px solid #9e6a03; }
+    .layer-icon.android  { background: #0d2d0d; border: 1px solid #238636; }
+    .layer-icon.ios      { background: #1a1a2e; border: 1px solid #8b5cf6; }
+    .layer-icon.result   { background: #1c2433; border: 1px solid #1f6feb; }
+
+    h2 {
+      font-size: 19px;
+      font-weight: 700;
+      color: #f0f6fc;
+    }
+
+    .file-tag {
+      font-size: 12px;
+      color: #8b949e;
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 2px 8px;
+    }
+
+    p {
+      color: #c9d1d9;
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
+
+    /* ── Key callout ── */
+    .callout {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-left: 3px solid #58a6ff;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+      font-size: 14px;
+      color: #c9d1d9;
+    }
+
+    .callout strong { color: #f0f6fc; }
+
+    .callout.green  { border-left-color: #3fb950; }
+    .callout.purple { border-left-color: #d2a8ff; }
+    .callout.yellow { border-left-color: #e3b341; }
+
+    /* ── Code block ── */
+    .code-wrap {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 18px;
+      font-size: 13.5px;
+    }
+
+    .code-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      background: #1c2128;
+      border-bottom: 1px solid #30363d;
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      font-size: 12px;
+      color: #8b949e;
+    }
+
+    .code-title .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #30363d;
+    }
+
+    pre {
+      padding: 18px 20px;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+
+    code {
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      color: #e6edf3;
+    }
+
+    /* syntax colours */
+    .k  { color: #ff7b72; }   /* keyword */
+    .s  { color: #a5d6ff; }   /* string */
+    .c  { color: #8b949e; font-style: italic; } /* comment */
+    .n  { color: #79c0ff; }   /* name / type */
+    .fn { color: #d2a8ff; }   /* function */
+    .p  { color: #e6edf3; }   /* punctuation */
+    .num{ color: #f8c291; }   /* number */
+    .hl { background: #1f3a5f; border-radius: 3px; padding: 1px 4px; }  /* highlight */
+
+    /* ── Results table ── */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid #30363d;
+      margin-bottom: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead tr {
+      background: #1c2128;
+    }
+
+    th {
+      text-align: left;
+      padding: 11px 16px;
+      color: #8b949e;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      border-bottom: 1px solid #30363d;
+    }
+
+    td {
+      padding: 11px 16px;
+      border-bottom: 1px solid #21262d;
+      color: #c9d1d9;
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #161b22; }
+
+    td code {
+      background: #1c2128;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 12px;
+      color: #e6edf3;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 20px;
+      padding: 2px 9px;
+    }
+    .tag.js       { background: #2d2208; color: #e3b341; border: 1px solid #9e6a03; }
+    .tag.android  { background: #0d2d0d; color: #3fb950; border: 1px solid #238636; }
+    .tag.ios      { background: #1a1a2e; color: #d2a8ff; border: 1px solid #8b5cf6; }
+
+    /* ── How it works flow ── */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 18px;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 14px;
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #c9d1d9;
+    }
+
+    .flow-num {
+      min-width: 22px;
+      height: 22px;
+      background: #21262d;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #8b949e;
+      margin-top: 1px;
+    }
+
+    /* ── Source link ── */
+    .source-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #58a6ff;
+      text-decoration: none;
+      border: 1px solid #1f6feb;
+      background: #0d1117;
+      border-radius: 6px;
+      padding: 6px 14px;
+      margin-top: 4px;
+      transition: background .15s;
+    }
+    .source-link:hover { background: #161b22; }
+
+    footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid #21262d;
+      font-size: 13px;
+      color: #484f58;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <!-- Sentry wordmark SVG -->
+      <svg width="32" height="32" viewBox="0 0 72 66" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M29.5 3.5C30.9 1.1 34.3 0 36 0c1.7 0 5.1 1.1 6.5 3.5L71 55.5c1.4 2.4.4 5.5-2 6.5H56c0-10-5-19-13-24l-7 12c5 3 8 8 8 13H3c-2.4-1-3.4-4.1-2-6.5L29.5 3.5z" fill="#362D59"/>
+        <path d="M36 14L22 38c8 4 14 12 15 21h11c-1-12-8-23-19-28l7-11c14 6 23 20 24 35h5l-29-51zM14 54c0-5 2-9 5-13L8 28C3 34 0 42 0 54c0 4 3 6 6 6h14c-3-1-6-3-6-6z" fill="#fff"/>
+      </svg>
+      <span style="font-size:18px; font-weight:700; color:#f0f6fc;">Sentry</span>
+    </div>
+    <div class="badge">Proof of Concept</div>
+    <h1>Native HTTP Traces in React Native</h1>
+    <p class="subtitle">
+      How to capture HTTP requests made from the <strong>Android and iOS native layers</strong>
+      as spans in Sentry — alongside JS-layer navigation and component traces.
+    </p>
+  </header>
+
+  <!-- Overview -->
+  <div class="section">
+    <div class="callout">
+      <strong>The core challenge:</strong> The React Native JS SDK auto-instruments <code>fetch</code> and
+      <code>XMLHttpRequest</code>, but HTTP requests made by native Android or iOS code are invisible to it.
+      The solution is to initialize the native Sentry SDKs independently and use their own network
+      instrumentation (OkHttp interceptor on Android, URLSession swizzling on iOS).
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div>Set <strong>autoInitializeNativeSdk: false</strong> in JS <code>Sentry.init()</code> — the JS SDK will not call <code>SentryAndroid.init()</code> or <code>SentrySDK.start()</code> via the bridge.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div>Initialize Sentry <strong>Android</strong> in <code>MainApplication.onCreate()</code> and Sentry <strong>iOS</strong> in <code>AppDelegate</code> — both before React Native starts.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div>Wire <strong>SentryOkHttpInterceptor</strong> (Android) into every OkHttpClient used for native requests. URLSession on iOS is auto-swizzled — no extra wiring needed.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div>Before each native HTTP call, <strong>start a Sentry transaction and bind it to scope</strong> — this gives the OkHttp / URLSession spans a parent to attach to, making them visible in the trace waterfall.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS Layer -->
+  <div class="section">
+    <div class="section-header">
+      <div class="layer-icon js">𝐉</div>
+      <div>
+        <h2>JavaScript Layer</h2>
+        <span class="file-tag">app/_layout.tsx</span>
+      </div>
+    </div>
+
+    <div class="callout yellow">
+      <strong>autoInitializeNativeSdk: false</strong> is the critical flag. Without it, the JS SDK
+      would attempt to call the native SDK init via the bridge — conflicting with our manual native
+      initialization and potentially double-initializing Sentry.
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-title"><div class="dot"></div> app/_layout.tsx</div>
+      <pre><code><span class="k">import</span> * <span class="k">as</span> <span class="n">Sentry</span> <span class="k">from</span> <span class="s">'@sentry/react-native'</span>;
+<span class="k">import</span> { <span class="n">useNavigationContainerRef</span> } <span class="k">from</span> <span class="s">'expo-router'</span>;
+
+<span class="c">// Create outside the component — instantiated once, passed into init()</span>
+<span class="k">const</span> <span class="n">navigationIntegration</span> = <span class="n">Sentry</span>.<span class="fn">reactNavigationIntegration</span>({
+  <span class="n">enableTimeToInitialDisplay</span>: <span class="k">true</span>,
+});
+
+<span class="n">Sentry</span>.<span class="fn">init</span>({
+  <span class="n">dsn</span>: <span class="s">'YOUR_DSN_HERE'</span>,
+  <span class="n">tracesSampleRate</span>: <span class="num">1.0</span>,
+
+  <span class="c">// Do NOT let the JS bridge call SentryAndroid.init() / SentrySDK.start().</span>
+  <span class="c">// We initialize native SDKs manually in MainApplication.kt / AppDelegate.swift.</span>
+  <span class="hl"><span class="n">autoInitializeNativeSdk</span>: <span class="k">false</span>,</span>
+
+  <span class="n">integrations</span>: [<span class="n">navigationIntegration</span>],
+});
+
+<span class="c">// Register Expo Router's NavigationContainer with Sentry</span>
+<span class="k">function</span> <span class="fn">RootLayout</span>() {
+  <span class="k">const</span> <span class="n">ref</span> = <span class="fn">useNavigationContainerRef</span>();
+  <span class="n">useEffect</span>(() => {
+    <span class="k">if</span> (<span class="n">ref</span>?.<span class="n">current</span>) <span class="n">navigationIntegration</span>.<span class="fn">registerNavigationContainer</span>(<span class="n">ref</span>);
+  }, [<span class="n">ref</span>.<span class="n">current</span>]);
+  <span class="k">return</span> &lt;<span class="n">Stack</span> /&gt;;
+}
+
+<span class="k">export default</span> <span class="n">Sentry</span>.<span class="fn">wrap</span>(<span class="n">RootLayout</span>);</code></pre>
+    </div>
+
+    <p>
+      The JS SDK produces <strong>navigation transactions</strong> (one per screen route change) and
+      <strong>React Component Profiler spans</strong> for any component wrapped with
+      <code>Sentry.withProfiler()</code> or <code>&lt;Sentry.Profiler&gt;</code>.
+    </p>
+  </div>
+
+  <!-- Android Layer -->
+  <div class="section">
+    <div class="section-header">
+      <div class="layer-icon android">🤖</div>
+      <div>
+        <h2>Android Layer</h2>
+        <span class="file-tag">MainApplication.kt &nbsp;·&nbsp; NativeHttpModule.kt &nbsp;·&nbsp; build.gradle</span>
+      </div>
+    </div>
+
+    <div class="callout green">
+      Sentry Android is initialized in <code>Application.onCreate()</code> <strong>before the React Native
+      bridge starts</strong>, so it is ready the moment any native module tries to make an HTTP call.
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-title"><div class="dot"></div> android/app/build.gradle — extra dependency</div>
+      <pre><code><span class="n">dependencies</span> {
+    <span class="c">// Version must match sentry-android bundled by @sentry/react-native</span>
+    <span class="c">// Check: node_modules/@sentry/react-native/android/build.gradle → api 'io.sentry:sentry-android:x.x.x'</span>
+    <span class="hl"><span class="fn">implementation</span>(<span class="s">"io.sentry:sentry-android-okhttp:7.22.5"</span>)</span>
+}</code></pre>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-title"><div class="dot"></div> MainApplication.kt — Sentry init in onCreate()</div>
+      <pre><code><span class="k">import</span> <span class="n">io.sentry.android.core.SentryAndroid</span>
+
+<span class="k">override fun</span> <span class="fn">onCreate</span>() {
+    <span class="k">super</span>.<span class="fn">onCreate</span>()
+
+    <span class="c">// Initialize before RN bridge — autoInitializeNativeSdk = false in JS means</span>
+    <span class="c">// the JS SDK will NOT call this. We own it here.</span>
+    <span class="hl"><span class="n">SentryAndroid</span>.<span class="fn">init</span>(<span class="k">this</span>) { <span class="n">options</span> -></span>
+    <span class="hl">    <span class="n">options</span>.<span class="n">dsn</span> = <span class="s">"YOUR_DSN_HERE"</span>  <span class="c">// same DSN as JS layer</span></span>
+    <span class="hl">    <span class="n">options</span>.<span class="n">tracesSampleRate</span> = <span class="num">1.0</span></span>
+    <span class="hl">}</span>
+    <span class="c">// ... SoLoader.init, RN bootstrap, etc.</span>
+}</code></pre>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-title"><div class="dot"></div> NativeHttpModule.kt — OkHttp with Sentry interceptors</div>
+      <pre><code><span class="k">import</span> <span class="n">io.sentry.android.okhttp.SentryOkHttpInterceptor</span>
+<span class="k">import</span> <span class="n">io.sentry.android.okhttp.SentryOkHttpEventListener</span>
+<span class="k">import</span> <span class="n">io.sentry.Sentry</span>, <span class="n">io.sentry.SpanStatus</span>, <span class="n">io.sentry.TransactionOptions</span>
+
+<span class="c">// Client built once — both interceptors registered</span>
+<span class="k">private val</span> <span class="n">client</span> = <span class="n">OkHttpClient</span>.<span class="fn">Builder</span>()
+    <span class="hl">.<span class="fn">addInterceptor</span>(<span class="n">SentryOkHttpInterceptor</span>())   <span class="c">// HTTP span + trace headers</span></span>
+    <span class="hl">.<span class="fn">eventListener</span>(<span class="n">SentryOkHttpEventListener</span>())  <span class="c">// DNS / TLS / connect sub-spans</span></span>
+    .<span class="fn">build</span>()
+
+<span class="p">@</span><span class="n">ReactMethod</span>
+<span class="k">fun</span> <span class="fn">makeRequest</span>(<span class="n">url</span>: <span class="n">String</span>, <span class="n">promise</span>: <span class="n">Promise</span>) {
+    <span class="c">// isBindToScope = true → makes this the active transaction so</span>
+    <span class="c">// SentryOkHttpInterceptor can attach child spans to it</span>
+    <span class="hl"><span class="k">val</span> <span class="n">transaction</span> = <span class="n">Sentry</span>.<span class="fn">startTransaction</span>(</span>
+    <span class="hl">    <span class="s">"NativeHttpRequest"</span>, <span class="s">"http.client.native"</span>,</span>
+    <span class="hl">    <span class="n">TransactionOptions</span>().<span class="fn">apply</span> { <span class="n">isBindToScope</span> = <span class="k">true</span> }</span>
+    <span class="hl">)</span>
+    <span class="n">Thread</span> {
+        <span class="k">try</span> {
+            <span class="k">val</span> <span class="n">response</span> = <span class="n">client</span>.<span class="fn">newCall</span>(<span class="n">Request</span>.<span class="fn">Builder</span>().<span class="fn">url</span>(<span class="n">url</span>).<span class="fn">build</span>()).<span class="fn">execute</span>()
+            <span class="n">transaction</span>.<span class="fn">finish</span>(<span class="n">SpanStatus</span>.<span class="n">OK</span>)
+            <span class="n">promise</span>.<span class="fn">resolve</span>(<span class="n">response</span>.<span class="n">body</span>?.<span class="fn">string</span>())
+        } <span class="k">catch</span> (<span class="n">e</span>: <span class="n">Exception</span>) {
+            <span class="n">transaction</span>.<span class="fn">finish</span>(<span class="n">SpanStatus</span>.<span class="n">INTERNAL_ERROR</span>)
+            <span class="n">promise</span>.<span class="fn">reject</span>(<span class="s">"HTTP_ERROR"</span>, <span class="n">e</span>.<span class="n">message</span>, <span class="n">e</span>)
+        }
+    }.<span class="fn">start</span>()
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- iOS Layer -->
+  <div class="section">
+    <div class="section-header">
+      <div class="layer-icon ios">🍎</div>
+      <div>
+        <h2>iOS Layer</h2>
+        <span class="file-tag">AppDelegate.swift &nbsp;·&nbsp; NativeHttpModule.swift</span>
+      </div>
+    </div>
+
+    <div class="callout purple">
+      Sentry Cocoa auto-swizzles <code>URLSession</code> when <code>enableNetworkTracking = true</code>
+      (the default). No interceptor wiring is needed — any <code>URLSession</code> request made while
+      a Sentry transaction is active automatically becomes a child span.
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-title"><div class="dot"></div> AppDelegate.swift — Sentry init</div>
+      <pre><code><span class="k">import</span> <span class="n">Sentry</span>
+
+<span class="k">func</span> <span class="fn">application</span>(<span class="n">_</span> application: <span class="n">UIApplication</span>,
+  <span class="n">didFinishLaunchingWithOptions</span> ...) -> <span class="n">Bool</span> {
+
+    <span class="hl"><span class="n">SentrySDK</span>.<span class="fn">start</span> { <span class="n">options</span> <span class="k">in</span></span>
+    <span class="hl">    <span class="n">options</span>.<span class="n">dsn</span> = <span class="s">"YOUR_DSN_HERE"</span>  <span class="c">// same DSN as JS + Android</span></span>
+    <span class="hl">    <span class="n">options</span>.<span class="n">tracesSampleRate</span> = <span class="num">1.0</span></span>
+    <span class="hl">    <span class="n">options</span>.<span class="n">enableNetworkTracking</span> = <span class="k">true</span>  <span class="c">// auto-swizzles URLSession (default)</span></span>
+    <span class="hl">}</span>
+    <span class="c">// ... rest of app launch</span>
+}</code></pre>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-title"><div class="dot"></div> NativeHttpModule.swift — URLSession with manual transaction</div>
+      <pre><code><span class="k">import</span> <span class="n">Sentry</span>
+
+<span class="p">@objc func</span> <span class="fn">makeRequest</span>(<span class="n">_</span> url: <span class="n">String</span>,
+  <span class="n">resolve</span>: <span class="p">@escaping</span> <span class="n">RCTPromiseResolveBlock</span>,
+  <span class="n">reject</span>:  <span class="p">@escaping</span> <span class="n">RCTPromiseRejectBlock</span>) {
+
+    <span class="c">// bindToScope: true → URLSession swizzling attaches the network span as a child</span>
+    <span class="hl"><span class="k">let</span> <span class="n">transaction</span> = <span class="n">SentrySDK</span>.<span class="fn">startTransaction</span>(</span>
+    <span class="hl">    <span class="n">name</span>: <span class="s">"NativeHttpRequest"</span>, <span class="n">operation</span>: <span class="s">"http.client.native"</span>,</span>
+    <span class="hl">    <span class="n">bindToScope</span>: <span class="k">true</span></span>
+    <span class="hl">)</span>
+
+    <span class="n">URLSession</span>.<span class="n">shared</span>.<span class="fn">dataTask</span>(<span class="n">with</span>: <span class="n">URL</span>(<span class="n">string</span>: <span class="n">url</span>)!) { <span class="n">data</span>, <span class="n">_</span>, <span class="n">error</span> <span class="k">in</span>
+        <span class="k">if let</span> <span class="n">error</span> = <span class="n">error</span> {
+            <span class="n">transaction</span>.<span class="fn">finish</span>(<span class="n">status</span>: .<span class="n">internalError</span>)
+            <span class="fn">reject</span>(<span class="s">"HTTP_ERROR"</span>, <span class="n">error</span>.<span class="n">localizedDescription</span>, <span class="n">error</span>); <span class="k">return</span>
+        }
+        <span class="n">transaction</span>.<span class="fn">finish</span>(<span class="n">status</span>: .<span class="n">ok</span>)
+        <span class="fn">resolve</span>(<span class="n">String</span>(<span class="n">data</span>: <span class="n">data</span>!, <span class="n">encoding</span>: .<span class="n">utf8</span>))
+    }.<span class="fn">resume</span>()
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="section">
+    <div class="section-header">
+      <div class="layer-icon result">📊</div>
+      <div>
+        <h2>What appears in Sentry</h2>
+        <span class="file-tag">Performance → Traces</span>
+      </div>
+    </div>
+
+    <p>All three layers send to the <strong>same Sentry project</strong> (same DSN).
+    JS and native traces carry separate trace IDs — they are independent — but both
+    are visible in the Performance waterfall.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Transaction name</th>
+            <th>Source</th>
+            <th>Child spans</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Route Change to /index</code></td>
+            <td><span class="tag js">JS SDK</span></td>
+            <td>HomeScreen mount · WelcomeCard mount · InfoCard mount · StatusCard mount</td>
+          </tr>
+          <tr>
+            <td><code>Route Change to /next-screen</code></td>
+            <td><span class="tag js">JS SDK</span></td>
+            <td>NextScreen mount</td>
+          </tr>
+          <tr>
+            <td><code>NativeHttpRequest</code></td>
+            <td><span class="tag android">Android SDK</span></td>
+            <td>GET https://… · dns · connect · tls_handshake · send_request_headers · response_body</td>
+          </tr>
+          <tr>
+            <td><code>NativeHttpRequest</code></td>
+            <td><span class="tag ios">iOS SDK</span></td>
+            <td>GET https://… (URLSession auto-instrumented)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <strong>Note on trace correlation:</strong> Because <code>autoInitializeNativeSdk: false</code> means the
+      JS and native SDKs operate independently, JS traces and native traces will typically carry
+      different trace IDs. They appear as separate entries in the Performance view. If the
+      native request happens to fire while a JS navigation transaction is still open and the
+      bridge has propagated the trace context, they <em>may</em> share a trace — but this is not
+      guaranteed and not required for the spans to be visible.
+    </div>
+
+    <a class="source-link" href="https://github.com/thinkocapo/react-native-http-traces" target="_blank">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      View full source — github.com/thinkocapo/react-native-http-traces
+    </a>
+  </div>
+
+  <footer>
+    Built with Sentry React Native SDK · Expo 53 · React Native 0.79
+  </footer>
+
+</div>
+</body>
+</html>
