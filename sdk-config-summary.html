@@ -330,6 +330,17 @@
       instrumentation (OkHttp interceptor on Android, URLSession swizzling on iOS).
     </div>
 
+    <div class="callout yellow">
+      <strong>⚠️ Current state of the product:</strong> The native HTTP request spans appear in their
+      <strong>own separate traces</strong> — they do <strong>not</strong> appear nested inside the JS
+      navigation trace for the Home or Next Screen. When you open the
+      <code>Route Change to /index</code> trace in Sentry, you will <em>not</em> see the native HTTP
+      spans there. They show up as standalone <code>NativeHttpRequest</code> transactions in the
+      Performance view. This is because <code>autoInitializeNativeSdk: false</code> means the JS and
+      native SDKs operate independently with no shared trace context.
+      <strong>This is the current product behaviour, not a bug.</strong>
+    </div>
+
     <div class="flow">
       <div class="flow-step">
         <div class="flow-num">1</div>
@@ -549,11 +560,12 @@
       </div>
     </div>
 
-    <p>All three layers send to the <strong>same Sentry project</strong> (same DSN).
-    JS and native traces carry separate trace IDs — they are independent — but both
-    are visible in the Performance waterfall.</p>
+    <p>All three layers send to the <strong>same Sentry project</strong> (same DSN), but JS and native
+    traces are <strong>completely separate</strong> — each has its own trace ID and its own waterfall.
+    The native HTTP spans do <strong>not</strong> appear inside the JS navigation transactions.</p>
 
-    <div class="table-wrap">
+    <p style="font-size:14px; font-weight:600; color:#8b949e; text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;">JS Traces</p>
+    <div class="table-wrap" style="margin-bottom:24px;">
       <table>
         <thead>
           <tr>
@@ -573,6 +585,21 @@
             <td><span class="tag js">JS SDK</span></td>
             <td>NextScreen mount</td>
           </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="font-size:14px; font-weight:600; color:#8b949e; text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;">Native Traces — separate, not nested inside the JS traces above</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Transaction name</th>
+            <th>Source</th>
+            <th>Child spans</th>
+          </tr>
+        </thead>
+        <tbody>
           <tr>
             <td><code>NativeHttpRequest</code></td>
             <td><span class="tag android">Android SDK</span></td>
@@ -587,13 +614,11 @@
       </table>
     </div>
 
-    <div class="callout">
-      <strong>Note on trace correlation:</strong> Because <code>autoInitializeNativeSdk: false</code> means the
-      JS and native SDKs operate independently, JS traces and native traces will typically carry
-      different trace IDs. They appear as separate entries in the Performance view. If the
-      native request happens to fire while a JS navigation transaction is still open and the
-      bridge has propagated the trace context, they <em>may</em> share a trace — but this is not
-      guaranteed and not required for the spans to be visible.
+    <div class="callout yellow">
+      <strong>To be clear:</strong> opening the <code>Route Change to /index</code> trace waterfall in
+      Sentry will <em>not</em> show the native HTTP spans. Look for <code>NativeHttpRequest</code>
+      as a separate transaction in Performance. Both are real, both are captured — they just live
+      in separate traces. This is the current state of the product.
     </div>
 
     <a class="source-link" href="https://github.com/thinkocapo/react-native-http-traces" target="_blank">

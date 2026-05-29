@@ -12,10 +12,12 @@ The question this app answers: **can those native-layer HTTP requests still show
 
 ### What it tests
 
-- HTTP requests fired from **Android native code** (OkHttp + `SentryOkHttpInterceptor`) appear as spans in the Sentry Performance waterfall
-- HTTP requests fired from **iOS native code** (URLSession, auto-swizzled by Sentry Cocoa) appear as spans in the Sentry Performance waterfall
+- HTTP requests fired from **Android native code** (OkHttp + `SentryOkHttpInterceptor`) appear as spans in Sentry — visible in the Performance waterfall
+- HTTP requests fired from **iOS native code** (URLSession, auto-swizzled by Sentry Cocoa) appear as spans in Sentry — visible in the Performance waterfall
 - **JS-layer traces** run independently alongside the native traces — navigation transactions and React Component Profiler spans from the JavaScript layer land in the same Sentry project
 - All three layers (JS, Android, iOS) send to the **same DSN / same Sentry project**
+
+> ⚠️ **Current state of the product:** The native HTTP request spans appear in their **own separate traces** — they do **not** appear nested inside the JS navigation trace for the Home or Next Screen. When you open the `Route Change to /index` trace in Sentry, you will not see the native HTTP spans there. They show up as their own standalone `NativeHttpRequest` transactions. This is expected given how `autoInitializeNativeSdk: false` works — the JS and native SDKs operate independently with separate trace contexts. This is the current product behaviour, not a bug.
 
 ### What the app does
 
@@ -32,7 +34,7 @@ The question this app answers: **can those native-layer HTTP requests still show
 
 By default, `Sentry.init()` in JavaScript also initializes the native Sentry SDKs via the React Native bridge. Setting `autoInitializeNativeSdk: false` disables this, allowing each native layer to own its own initialization with full control over options (sample rate, OkHttp wiring, URLSession tracking, etc.).
 
-Side effect: JS traces and native traces carry **separate trace IDs** — they appear as independent traces in Sentry Performance. That is acceptable for this use case. If a native request happens while a JS navigation transaction is still open *and* the bridge has propagated the trace context, they *may* share a trace — but this is not guaranteed.
+**Important consequence: JS traces and native traces are separate.** Because the JS and native SDKs operate independently with no shared trace context, the native HTTP spans will **not** appear inside the `Route Change to /index` or `Route Change to /next-screen` transactions. They arrive in Sentry as their own standalone `NativeHttpRequest` transactions. This is the current state of the product — the two worlds are visible in the same Sentry project but in separate trace waterfalls. If a native request happened to fire while a JS transaction is still active *and* the bridge propagated the trace context, they *may* share a trace ID, but this cannot be relied upon.
 
 ---
 
@@ -221,14 +223,23 @@ import Sentry
 
 ## What appears in Sentry Performance
 
-All three layers send to the **same Sentry project** (same DSN). JS and native traces are independent (separate trace IDs) but both visible in the Performance waterfall.
+All three layers send to the **same Sentry project** (same DSN). JS and native traces each have their own trace ID — they are **separate traces**, not nested inside one another.
+
+**JS traces** (from `reactNavigationIntegration`):
 
 | Transaction | Source | Child spans |
 |---|---|---|
 | `Route Change to /index` | JS SDK | HomeScreen · WelcomeCard · InfoCard · StatusCard component profiler spans |
 | `Route Change to /next-screen` | JS SDK | NextScreen component profiler span |
+
+**Native traces** (separate — do not appear inside the JS traces above):
+
+| Transaction | Source | Child spans |
+|---|---|---|
 | `NativeHttpRequest` | Android SDK | GET span · dns · connect · tls_handshake · send_request_headers · response_body |
 | `NativeHttpRequest` | iOS SDK | GET span (URLSession auto-instrumented) |
+
+> The native HTTP spans are **not** visible inside the `Route Change to /index` trace waterfall. They exist as their own top-level transactions. This is the current state of the product — both sets of traces are real and useful, they just live separately in Sentry Performance.
 
 ---
 
