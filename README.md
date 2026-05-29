@@ -28,6 +28,22 @@ The question this app answers: **can those native-layer HTTP requests still show
 
 ---
 
+## Expected Behavior
+
+### JS navigation trace (Home screen)
+
+The `ui.load - index` transaction captures the full React lifecycle on the Home screen — cold start, navigation processing, and component mount spans. Notice that **the native HTTP request spans are not here** — they appear in a separate trace.
+
+![JS navigation trace for the Home screen, showing component profiler spans. A callout notes that the HTTP request spans appear in a separate NativeHttpRequest trace.](index.png)
+
+### Native HTTP traces (NativeHttpRequest)
+
+Native HTTP requests arrive as their own standalone `NativeHttpRequest` transactions (operation: `http.client.native`). Requests fired **on screen mount** use `/posts` endpoints; requests fired **by button taps** use `/todos` endpoints — making it easy to distinguish the two triggers in the Sentry Performance view.
+
+![Side-by-side of two NativeHttpRequest traces. Left shows posts URLs made during screen mounting; right shows todos URLs made by button clicks.](posts-vs-todos.png)
+
+---
+
 ## SDK Configuration
 
 ### The key design decision: `autoInitializeNativeSdk: false`
@@ -240,22 +256,6 @@ All three layers send to the **same Sentry project** (same DSN). JS and native t
 | `NativeHttpRequest` | iOS SDK | GET span (URLSession auto-instrumented) |
 
 > The native HTTP spans are **not** visible inside the `Route Change to /index` trace waterfall. They exist as their own top-level transactions. This is the current state of the product — both sets of traces are real and useful, they just live separately in Sentry Performance.
-
----
-
-## Expected Behavior
-
-### JS navigation trace (Home screen)
-
-The `ui.load - index` transaction captures the full React lifecycle on the Home screen — cold start, navigation processing, and component mount spans. Notice that **the native HTTP request spans are not here** — they appear in a separate trace.
-
-![JS navigation trace for the Home screen, showing component profiler spans. A callout notes that the HTTP request spans appear in a separate NativeHttpRequest trace.](index.png)
-
-### Native HTTP traces (NativeHttpRequest)
-
-Native HTTP requests arrive as their own standalone `NativeHttpRequest` transactions (operation: `http.client.native`). Requests fired **on screen mount** use `/posts` endpoints; requests fired **by button taps** use `/todos` endpoints — making it easy to distinguish the two triggers in the Sentry Performance view.
-
-![Side-by-side of two NativeHttpRequest traces. Left shows posts URLs made during screen mounting; right shows todos URLs made by button clicks.](posts-vs-todos.png)
 
 ---
 
