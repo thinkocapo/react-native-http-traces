@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Native build artifacts (keep android/ source, ignore compiled output)
+android/build/
+android/app/build/
+android/.gradle/
+android/app/.cxx/
+android/local.properties
+*.apk
+*.aab
+*.jks
+*.keystore
+!android/app/debug.keystore
+
+# iOS build artifacts
+ios/build/
+ios/Pods/
+DerivedData/
+*.xcworkspace
+*.xcuserdata
+Podfile.lock
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Metro
+.metro-health-check*
+
+# macOS
+.DS_Store
+
+# Editor
+.idea/
+.vscode/
+*.swp
+
+# TypeScript
+*.tsbuildinfo

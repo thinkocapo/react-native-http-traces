@@ -1,0 +1,22 @@
+# After `expo prebuild`, open ios/<AppName>/AppDelegate.swift and add
+# Sentry iOS initialization inside application(_:didFinishLaunchingWithOptions:).
+#
+# Mirrors the Android setup:
+#   - autoInitializeNativeSdk = false in JS, so we init Sentry Cocoa here.
+#   - enableNetworkTracking = true (default) auto-swizzles URLSession.
+#   - DSN must match app/_layout.tsx and MainApplication.kt.
+
+# ── Add this import at the top of AppDelegate.swift ──────────────────────────
+import Sentry
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Add these lines at the START of application(_:didFinishLaunchingWithOptions:)
+SentrySDK.start { options in
+    // ← PASTE YOUR DSN HERE
+    options.dsn = "https://2faf6dcc8ba24113bd86a22fef53b1ec@o262702.ingest.us.sentry.io/5782557"
+    options.tracesSampleRate = 1.0
+    options.debug = true                  // remove in production
+    options.enableNetworkTracking = true  // auto-swizzles URLSession (default: true)
+    options.enableAutoSessionTracking = true
+}
+# ─────────────────────────────────────────────────────────────────────────────
