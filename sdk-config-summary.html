@@ -621,6 +621,27 @@
       in separate traces. This is the current state of the product.
     </div>
 
+    <div class="section-header" style="margin-top:56px;">
+      <div class="section-title-row">
+        <h2>Expected Behavior</h2>
+        <span class="file-tag">Screenshots</span>
+      </div>
+    </div>
+
+    <p style="margin-bottom:24px;">These screenshots were captured from a real run of this app. They show exactly what you should see in Sentry once everything is wired up correctly.</p>
+
+    <p style="font-size:14px; font-weight:600; color:#8b949e; text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px;">JS Navigation Trace — Home Screen</p>
+    <p style="margin-bottom:14px;">The <code>ui.load - index</code> transaction captures the React lifecycle: cold start, navigation processing, and component mount spans from <code>Sentry.withProfiler()</code>. The native HTTP spans are <strong>not here</strong> — look for them in a separate <code>NativeHttpRequest</code> transaction.</p>
+    <div style="margin-bottom:36px; border: 1px solid #21262d; border-radius: 8px; overflow:hidden;">
+      <img src="index.png" alt="Sentry trace waterfall for ui.load - index, showing app.start.cold, navigation.processing, and component profiler spans for HomeScreen, WelcomeCard, InfoCard, and StatusCard. A callout notes the HTTP request spans appear in a separate NativeHttpRequest trace." style="width:100%; display:block;" />
+    </div>
+
+    <p style="font-size:14px; font-weight:600; color:#8b949e; text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px;">Native HTTP Traces — NativeHttpRequest</p>
+    <p style="margin-bottom:14px;">Native HTTP requests arrive as standalone <code>NativeHttpRequest</code> transactions (<code>http.client.native</code>). Requests fired <strong>on screen mount</strong> hit <code>/posts</code> endpoints; requests fired <strong>by button taps</strong> hit <code>/todos</code> endpoints — making the two triggers easy to distinguish in Performance.</p>
+    <div style="margin-bottom:36px; border: 1px solid #21262d; border-radius: 8px; overflow:hidden;">
+      <img src="posts-vs-todos.png" alt="Side-by-side of two NativeHttpRequest traces. Left shows GET requests to /posts URLs annotated as made during screen mounting. Right shows GET requests to /todos URLs annotated as made by button clicks." style="width:100%; display:block;" />
+    </div>
+
     <a class="source-link" href="https://github.com/thinkocapo/react-native-http-traces" target="_blank">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
       View full source — github.com/thinkocapo/react-native-http-traces
